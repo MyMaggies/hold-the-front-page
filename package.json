@@ -1,1 +1,0 @@
-{ "name": "hold-the-front-page", "private": true, "type": "module", "scripts": { "dev": "wrangler dev", "test": "node test/unit.mjs && node test/sim.mjs" }, "devDependencies": { "wrangler": "^4" } }
