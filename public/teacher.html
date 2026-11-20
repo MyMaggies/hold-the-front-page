@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:,">
+<title>Hold the Front Page - Teacher</title>
+<style>
+:root{color-scheme:dark;--bg:#14121f;--panel:#201c35;--edge:#4a4270;--ink:#fff6e0;--dim:#b3abd0;--gold:#F5C04A;--green:#3ecf7a;--red:#ff5a4d}
+*{box-sizing:border-box}body{margin:0;padding:16px;background:var(--bg);color:var(--ink);font:18px/1.25 "Avenir Next","Trebuchet MS",system-ui,sans-serif;font-weight:700}
+h1{font-size:22px;color:var(--gold);margin:0 0 4px}p{color:var(--dim);margin:4px 0 12px;font-size:16px}
+code{background:var(--panel);padding:2px 6px;border:1px solid var(--edge);border-radius:6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.t{background:var(--panel);border:3px solid var(--edge);border-radius:14px;padding:12px 14px}
+.t h2{margin:0 0 6px;font-size:20px;display:flex;justify-content:space-between;align-items:center}
+.ph{font-size:13px;padding:3px 9px;border-radius:8px;background:#312b57}.ph.play,.ph.reveal{background:#7a1c18}.ph.over{background:#1d4a2b}
+.lv{font-size:13px;color:var(--dim);margin:0 0 6px}
+.t ul{list-style:none;margin:0 0 10px;padding:0;font-size:16px;min-height:5.5em}.t li{padding:1px 0}.t li.off{opacity:.4}.r{color:var(--green)}.tm0{color:#ff5a4d}.tm1{color:#5b9bff}
+button{font:inherit;font-size:14px;padding:9px 12px;border:2px solid #000;border-radius:10px;background:var(--gold);color:#1a1020;cursor:pointer;margin:0 6px 6px 0}
+button.g{background:#312b57;color:var(--ink);border-color:var(--edge)}button.on{background:var(--green)}
+.msg{color:var(--dim);font-size:14px;min-height:1.2em}
+</style></head><body>
+<h1>HOLD THE FRONT PAGE: TEACHER VIEW</h1>
+<p>Students open <code id="url"></code>, type their real name and a display name, and tap their table letter. This page refreshes every 3 seconds. Each table plays one match at a time (2 to 10 players, always split into two equal teams, max 5 a side; with an odd number one player sits out and plays next round).</p>
+<div class="grid" id="grid"></div>
+<p><b>Start now</b> is the ONLY way a round begins (READY just shows who is set; works from 2 players). <b>Reset</b> sends the table back to its lobby. Pick a <b>mode</b> per table (it applies from the next round): Fact/Opinion, Tabloid/Broadsheet, or one of two 4-desk device sets.</p>
+<script>
+var TABLES=['A','B','C','D'];
+var MODES=[['fo','Fact / Opinion'],['tb','Tabloid / Broadsheet'],['d1','Devices 1: Alliteration, Hyperbole, Pun, Question'],['d2','Devices 2: Allusion, Slang, Rhyme, Stats']];
+var MN={};MODES.forEach(function(m){MN[m[0]]=m[1]});
+document.getElementById('url').textContent=location.origin;
+function key(){var k='';try{k=localStorage.getItem('htfp_tkey')||''}catch(e){}if(!k){k=prompt('Teacher password (see wrangler.toml)')||'';try{localStorage.setItem('htfp_tkey',k)}catch(e){}}return k}
+function esc(s){return String(s).replace(/[<>&"]/g,'')}
+var grid=document.getElementById('grid');
+TABLES.forEach(function(t){var d=document.createElement('div');d.className='t';d.innerHTML='<h2>TABLE '+t+' <span class="ph" id="p'+t+'">...</span></h2><p class="lv" id="v'+t+'"></p><ul id="l'+t+'"></ul>'
+ +'<div class="md" id="b'+t+'">'+MODES.map(function(m){return '<button class="m" data-c="mode" data-t="'+t+'" data-v="'+m[0]+'">'+m[1]+'</button>'}).join('')+'</div>'
+ +'<div class="pl" id="pl'+t+'"></div><button class="g" data-c="shuffle" data-t="'+t+'">SHUFFLE TEAMS</button>'
+ +'<button data-c="start" data-t="'+t+'">START NOW</button><button class="g" data-c="reset" data-t="'+t+'">RESET</button><br>'
+ +'<div class="msg" id="m'+t+'"></div>';grid.appendChild(d)});
+grid.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var t=b.dataset.t,c=b.dataset.c,v=b.dataset.v;
+ fetch('/ctl/'+t+'?cmd='+c+(v?'&v='+v:'')+'&key='+encodeURIComponent(key())).then(function(r){return r.text().then(function(x){document.getElementById('m'+t).textContent=x;if(r.status===403){try{localStorage.removeItem('htfp_tkey')}catch(e){}}poll()})}).catch(function(){document.getElementById('m'+t).textContent='no connection'})});
+function poll(){TABLES.forEach(function(t){fetch('/status/'+t,{cache:'no-store'}).then(function(r){return r.json()}).then(function(s){
+ var p=document.getElementById('p'+t);p.textContent=s.phase.toUpperCase()+(s.round?' #'+s.round:'');p.className='ph '+s.phase;
+ document.getElementById('v'+t).textContent='Mode: '+(MN[s.mode]||s.mode);
+ Array.prototype.forEach.call(document.querySelectorAll('#b'+t+' button'),function(b){b.style.outline=b.dataset.v===s.mode?'3px solid #ffd23f':'none'});
+ var pe=document.getElementById('pl'+t);pe.innerHTML=s.plan?'<b style="color:#ff6b6b">HERALD</b>: '+s.plan.red.map(esc).join(', ')+'<br><b style="color:#6ba8ff">GAZETTE</b>: '+s.plan.blue.map(esc).join(', ')+(s.plan.out.length?'<br><i>sits out: '+s.plan.out.map(esc).join(', ')+'</i>':''):'<i>No teams yet: tap SHUFFLE TEAMS to see who plays with whom (START NOW also shuffles).</i>';
+ var live=s.phase==='play'||s.phase==='reveal';
+ document.getElementById('l'+t).innerHTML=s.seats.length?s.seats.map(function(x){return '<li class="'+(x.online?'':'off')+'">'+(x.real?'<b>'+esc(x.real)+'</b> ':'')+(x.real?'(':'')+esc(x.name)+(x.real?')':'')+(live&&x.inRound&&x.team!==null?' <span class="tm'+x.team+'">'+(x.team===0?'HERALD':'GAZETTE')+'</span>':'')+(!live&&x.online&&x.ready?' <span class="r">READY</span>':'')+(x.online?'':' (offline)')+'</li>'}).join(''):'<li class="off">empty</li>'}).catch(function(){})})}
+poll();setInterval(poll,3000);
+</script></body></html>

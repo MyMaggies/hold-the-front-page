@@ -1,0 +1,18 @@
+import { Room } from '../src/index.js';
+import assert from 'node:assert/strict';
+const st = { storage: { get: async () => undefined, put() {} }, blockConcurrencyWhile: async (f) => f(), getWebSockets: () => [] };
+const r = new Room(st, { TEACHER_KEY: 'k' });
+const sent = [];
+for (let i = 0; i < 7; i++) r.seats.push({ id: i, pid: null, name: 'P' + i, real: 'R' + i, ready: false, ws: { send: (x) => sent.push([i, JSON.parse(x)]), readyState: 1 }, inRound: false, team: null, role: 'A' });
+r.send = (s, m) => sent.push([s.id, m]);
+const url = (c) => new URL('http://x/ctl/A?key=k&cmd=' + c);
+let res = r.control(url('shuffle')); assert.equal(res.status, 200);
+const st1 = r.status(); assert.equal(st1.plan.red.length, 3); assert.equal(st1.plan.blue.length, 3); assert.equal(st1.plan.out.length, 1);
+const lobbies = sent.filter(([, m]) => m.t === 'lobby'); assert.ok(lobbies.every(([, m]) => m.plan));
+const before = JSON.stringify(r.plan.teams);
+assert.ok(r.control(url('start')).status === 200);
+const teams = r.seats.filter((s) => s.team !== null).map((s) => s.team); assert.equal(teams.length, 6);
+for (const s of r.seats) if (s.team !== null) assert.equal(s.team, JSON.parse(before)[s.id], 'plan respected');
+assert.equal(r.seats.filter((s) => s.inRound).length, 6); assert.equal(r.plan, null);
+console.log('plan ok', st1.plan);
+r.stopTimers && r.stopTimers(); process.exit(0);
