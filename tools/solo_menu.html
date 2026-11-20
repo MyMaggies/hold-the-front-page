@@ -1,0 +1,23 @@
+<div class="screen" id="solo">
+  <div class="logo">Hold the<br><span>Front Page</span></div>
+  <div class="sub">One-player practice. You and bots on both teams. No internet needed.</div>
+  <div class="card" id="soloOpts">
+    <div class="optrow" data-opt="mode"><span>Mode</span><button data-v="fo">Fact / Opinion</button><button data-v="tb">Tabloid / Broadsheet</button><button data-v="d1">Devices 1</button><button data-v="d2">Devices 2</button></div>
+    <div class="optrow" data-opt="per"><span>Team size</span><button data-v="3">3 v 3</button><button data-v="5">5 v 5</button></div>
+    <div class="optrow" data-opt="skill"><span>Bots</span><button data-v="easy">Easy</button><button data-v="normal">Normal</button><button data-v="hard">Hard</button></div>
+    <div class="optrow" data-opt="role"><span>Your role</span><button data-v="A">Attacker</button><button data-v="D">Defender</button></div>
+    <div class="optrow" data-opt="fog"><span>Fog of war</span><button data-v="off">Off: see all</button><button data-v="on">On: dark</button></div>
+    <div class="optrow" data-opt="warm"><span>Warm-up</span><button data-v="on">60s explore</button><button data-v="off">Skip</button></div>
+    <div id="soloRoleInfo" class="roleinfo"></div>
+    <div class="optrow" data-opt="powers"><span>Powers</span><button data-v="on">On</button><button data-v="off">Off</button></div>
+  </div>
+  <button class="big" id="soloPlay">PLAY</button>
+  <div class="msg">Move: drag anywhere (or WASD / arrows). E uses your power. Space drops a card.</div>
+  <style>
+    .optrow{display:flex;align-items:center;gap:8px;margin:8px 0;flex-wrap:wrap}.optrow span{min-width:92px;color:var(--dim)}
+    .optrow button{flex:1;padding:12px 8px;font-size:17px;border-radius:12px;border:3px solid var(--edge);background:#120f20;min-width:96px}
+    .optrow button.on{background:var(--gold);color:#1a1020;border-color:#fff}
+    .roleinfo{background:#120f20;border:3px solid var(--edge);border-radius:12px;padding:8px 10px;margin:4px 0 8px}.roleinfo .rk{display:flex;flex-direction:column;gap:6px;text-align:left}.roleinfo .pl{display:flex;gap:8px;align-items:center;font-size:14px;line-height:1.15;font-weight:700}.roleinfo .pl i{flex:none;width:32px;height:32px;border-radius:50%;border:2px solid #000;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:17px;color:#1a1020}
+    #quitBtn{position:absolute;right:calc(max(10px,env(safe-area-inset-right)) + 58px);top:max(8px,env(safe-area-inset-top));height:48px;padding:0 14px;border-radius:24px;border:3px solid var(--ink);background:rgba(20,18,31,.85);font-size:15px;pointer-events:auto}
+  </style>
+</div>
